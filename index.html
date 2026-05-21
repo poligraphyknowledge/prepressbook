@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Полиграфические знания</title>
+<style>
+
+@font-face {
+  font-family: "MyFont";
+  src: url("CoFoSans-Regular-Trial.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "MyFontThin";
+  src: url("CoFoSans-Thin-Trial.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  width: 100%; height: 100vh;
+  display: flex; align-items: stretch;
+  font-family: "MyFont", sans-serif; overflow: hidden;
+  position: relative;
+}
+
+#globalStage {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 300; overflow: hidden;
+}
+
+#animBox {
+  position: absolute;
+  width: 370px;
+  left: -400px;
+  opacity: 1;
+  z-index: 20;
+  transform-origin: center bottom;
+  will-change: transform, left;
+}
+#animBox img { width: 100%; display: block; }
+
+.g-img {
+  position: absolute;
+  width: 100px;
+  opacity: 0;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+  z-index: 10;
+}
+
+#phoneWrap {
+  position: absolute;
+  display: none;
+  z-index: 20;
+  pointer-events: none;
+  transform-origin: center center;
+  will-change: transform;
+}
+#phoneWrap img { width: 100%; height: auto; }
+
+/* ── Color mode toggle ── */
+#colorToggle {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 50;
+  width: 100px;
+  height: 38px;
+  border-radius: 999px;
+  border: 2px solid #111;
+  background: #fff;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  transition: top 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+#toggleKnob {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #111;
+  transition: left 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+#toggleLabel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* CMYK: надпись справа от кружка */
+#labelCmyk {
+  position: absolute;
+  right: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #111;
+  letter-spacing: 0.03em;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+/* RGB: надпись слева от кружка, изначально скрыта */
+#labelRgb {
+  position: absolute;
+  left: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #111;
+  letter-spacing: 0.03em;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+#colorToggle.rgb #toggleKnob {
+  left: calc(100% - 38px + 2px);
+}
+#colorToggle.rgb #labelCmyk {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+#colorToggle.rgb #labelRgb {
+  opacity: 1;
+  transition: opacity 0.2s ease 0.25s;
+}
+.main {
+  flex: 1; background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 40px 40px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Title slides up when blue opens */
+#mainTitle {
+  font-size: 70px; font-weight: 400; line-height: 1;
+  margin-top: 60px;
+  margin-left: clamp(40px, 45vw, 900px);
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  will-change: transform;
+}
+
+/* "Канал" text slides in from left */
+#blueLabel {
+  position: absolute;
+  left: -600px;
+  top: 60px;
+  font-size: 70px; font-weight: 400; line-height: 1;
+  color: #222;
+  max-width: 320px;
+  transition: left 0.7s cubic-bezier(0.2,0.8,0.4,1);
+  z-index: 10;
+}
+
+#panelPink {
+  width: 0;
+  overflow: hidden;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+#blueSub {
+  position: absolute;
+
+  white-space: nowrap;
+  left: -600px;
+  top: 310px;
+
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.3;
+
+  color: #444;
+
+  transition: left 0.7s cubic-bezier(0.2,0.8,0.4,1);
+
+  max-width: 420px;
+}
+
+#blueCircle {
+  position: absolute;
+
+  left: -600px;
+  top: 33px;
+
+  z-index: 1;
+  width: 120px;
+  height: auto;
+
+  opacity: 0;
+
+  transition:
+    left 0.7s cubic-bezier(0.2,0.8,0.4,1),
+    opacity 0.3s ease;
+}
+
+#pinkLabel {
+  position: absolute;
+  left: -600px;
+  top: 60px;
+
+  font-size: 70px;
+  font-weight: 400;
+  line-height: 1;
+  color: #222;
+
+  max-width: 420px;
+
+  transition: left 0.7s cubic-bezier(0.2,0.8,0.4,1);
+  z-index: 10;
+}
+
+#yellowWrap,
+#blueWrap {
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+.right-side { display: flex; flex-direction: row; align-items: stretch; height: 100%; flex-shrink: 0; }
+.panel-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.panel-content {
+  position: absolute;
+  right: 48px;
+  top: 0;
+
+  width: 0;
+  height: 100%;
+
+  overflow: hidden;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+
+  z-index: 5;
+}
+/* Panel widths are set via data-width attribute in HTML, handled by JS */
+.menu-tab {
+  position: relative;
+  z-index: 10;
+}
+.panel-inner {
+  height: 100%; padding: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  overflow: hidden;
+  width: 100%;
+}
+.panel-inner-scroll {
+  overflow-y: auto;
+
+  padding-top: 60px;
+  padding-right: 22px;
+  padding-bottom: 28px;
+  padding-left: 70px;
+
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.panel-inner-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+.bg-blue   { background: #29ABE2; transition: background 0.6s ease; }
+.bg-yellow { background: #F5A623; transition: background 0.6s ease; }
+.bg-pink   { background: #E91E8C; transition: background 0.6s ease; }
+.menu-tab  { transition: background 0.6s ease, opacity 0.2s; }
+
+.panel-inner h2 { font-size: 70px; font-weight: 400; color: #000000; margin-bottom: 12px; flex-shrink: 0; margin-top: 0px; }
+.panel-inner p  { font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.6; flex-shrink: 0; }
+
+.lessons-grid {
+  margin-top: 60px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: clamp(20px, 2vw, 48px);
+  width: 100%;
+  align-items: start;
+}
+.lesson-card {
+  background: #fff;
+  border-radius: 0;
+  overflow: hidden;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  flex-shrink: 0;
+}
+.lesson-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+}
+.lesson-thumb {
+  border: 2px solid #111;
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: transparent;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lesson-thumb .lesson-thumb-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.lesson-card:hover .lesson-thumb-play {
+  opacity: 1;
+}
+.lesson-thumb-inner {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #c8c8c8 0%, #e8e8e8 50%, #c0c0c0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lesson-thumb-play {
+  width: 36px;
+  height: 36px;
+  background: rgba(0,0,0,0.35);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lesson-thumb-play::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 8px 0 8px 14px;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 3px;
+}
+.lesson-info { display: none; }
+
+.menu-tab {
+  width: 48px; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; user-select: none; transition: opacity 0.2s;
+}
+.menu-tab:hover { opacity: 0.82; }
+.num {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; color: rgba(255,255,255,0.85); font-weight: 500;
+}
+.menu-tab.active .num { background: rgba(255,255,255,0.3); border-color: #fff; color: #fff; }
+
+.tg-btn {
+  display: block;
+
+  margin-top: auto;
+  margin-bottom: 36px;
+
+  flex-shrink: 0;
+
+  padding: 15px 25px;
+  border-radius: 999px;
+
+  background: #fff;
+  color: #000000;
+
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: 500;
+
+  border: 2px solid #111;
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+
+  transform: translateY(140px);
+  opacity: 0;
+
+  transition:
+    transform 0.7s cubic-bezier(0.2,0.8,0.4,1),
+    opacity 0.45s ease;
+}
+
+.tg-btn.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.tg-btn.show:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+}
+
+.tg-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+}
+
+.download-btn {
+  display: inline-block;
+  padding: 11px 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  border: 2px solid #111;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.13);
+  transition: transform 0.18s ease, opacity 0.18s ease;
+  align-self: flex-start;
+}
+.download-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.88;
+}
+
+#panelYellow .lessons-title,
+#panelYellow .lesson-card,
+#panelYellow .download-btn {
+  transform: translateY(-200vh);
+  opacity: 0;
+  visibility: hidden;
+}
+
+#panelYellow.open .lessons-title,
+#panelYellow.open .lesson-card,
+#panelYellow.open .download-btn {
+  visibility: visible;
+  transition: transform 0.7s cubic-bezier(0.2,0.8,0.4,1);
+}
+
+#panelYellow .show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pink-box {
+  background: #fff;
+  border-radius: 0px;
+  border: 2px solid #000;
+  padding: 18px 20px;
+  font-size: 22px;
+  line-height: 1.55;
+  color: #111;
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: 10px;
+  margin-bottom: 30px;
+  transform: translateY(-500vh);
+  transition: transform 1.5s cubic-bezier(0.2,0.8,0.4,1), opacity 0.4s ease;
+}
+
+.pink-box.show {
+  transform: translateY(0);
+}
+
+.pink-btn {
+  align-self: center;
+  margin-top: auto;
+  font-size: 22px;
+  padding: 14px 28px;
+  transform: translateY(140px);
+  opacity: 0;
+  transition: transform 1.5s cubic-bezier(0.2,0.8,0.4,1), opacity 0.45s ease;
+}
+
+.pink-btn.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ── Pink Slider ── */
+#pinkSlider {
+  position: absolute;
+  left: -750px;
+  width: clamp(260px, 35vw, 720px);
+  top: clamp(220px, 45vh, 340px);
+  z-index: 10;
+  transition: left 0.7s cubic-bezier(0.2,0.8,0.4,1);
+}
+
+.pink-slider-track {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: visible;
+  background: #eee;
+  border: 2px solid #111;
+}
+
+.pink-slider-track img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.pink-slider-track img.active {
+  opacity: 1;
+}
+
+/* placeholder when no real images */
+.pink-slider-placeholder {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #ddd 0%, #bbb 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #888;
+}
+
+.pink-slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  border: 2px solid #111;
+  background: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  z-index: 5;
+  transition: background 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+#pinkPrev { left: -35px; }
+#pinkNext { right: -35px; }
+
+#pinkPrev svg {
+  transform: translateX(-3px);
+}
+
+#pinkNext svg {
+  transform: translateX(3px);
+}
+
+.pink-slider-btn:hover {
+  background: #111;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.pink-slider-btn:hover svg path {
+  stroke: #fff;
+}
+
+.pink-slider-btn svg {
+  width: 60px; height: 60px;
+}
+
+.pink-slider-btn svg path {
+  stroke: #111;
+  stroke-width: 1.8;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  fill: none;
+  transition: stroke 0.15s ease;
+}
+
+.pink-slider-title {
+  border: 1px solid #111;
+  display: block;
+  width: 100%;
+  margin-top: -2px;
+}
+
+.lessons-title {
+  align-self: flex-start;
+
+    margin-top: 1000px;
+    margin-bottom: clamp(70px, 6vw, 110px);
+
+  margin-left: clamp(-8px, -1vw, -25px);
+
+  font-size: clamp(38px, 5vw, 70px);
+
+  line-height: 1;
+}
+
+.num-blue {
+  transform: translateY(60px);
+}
+
+.num-yellow {
+  transform: translateY(-60px);
+}
+
+.num-pink {
+  transform: translateY(0px);
+}
+
+</style>
+</head>
+<body>
+
+  <div id="globalStage">
+  <div id="animBox"><img src="box.png" alt="box"></div>
+  <!-- Влетают В коробку — меняйте src здесь -->
+  <img class="g-img" id="gi1" src="img4.png">
+  <img class="g-img" id="gi2" src="img5.png">
+  <img class="g-img" id="gi3" src="img6.png">
+  <!-- Вылетают ИЗ коробки — меняйте src здесь независимо -->
+  <img class="g-img" id="go1" src="img1.png">
+  <img class="g-img" id="go2" src="img2.png">
+  <img class="g-img" id="go3" src="img3.png">
+  <div id="phoneWrap"><img src="phone.png" alt="phone"></div>
+</div>
+
+<div class="main">
+  <div id="colorToggle">
+    <div id="toggleKnob"></div>
+    <div id="toggleLabel">
+      <span id="labelCmyk">CMYK</span>
+      <span id="labelRgb">RGB</span>
+    </div>
+  </div>
+  <h1 id="mainTitle">Источник<br>полиграфических<br>знаний</h1>
+  <div id="blueLabel">Канал<br>полиграфического<br>брака</div>
+  <div id="pinkLabel">Книга<br>полиграфических<br>знаний</div>
+
+  <!-- Slider under pinkLabel, flies in from left same as label -->
+  <div id="pinkSlider">
+    <div class="pink-slider-track">
+      <div class="pink-slider-clip">
+        <!-- Replace src values with your actual images -->
+        <img src="book1.png" class="active" alt="Фото книги 1">
+        <img src="book2.jpg" alt="Фото книги 2">
+        <img src="book1.png" alt="Фото книги 3">
+        <img src="book1.png" alt="Фото книги 4">
+      </div>
+      <button class="pink-slider-btn" id="pinkPrev" aria-label="Назад">
+        <svg viewBox="0 0 22 22"><path d="M14 4L8 11l6 7"/></svg>
+      </button>
+      <button class="pink-slider-btn" id="pinkNext" aria-label="Вперёд">
+        <svg viewBox="0 0 22 22"><path d="M8 4l6 7-6 7"/></svg>
+      </button>
+    </div>
+    <img src="slidertitle.png" class="pink-slider-title" alt="">
+  </div>
+
+  <div id="blueSub">
+  Отправляйте свои случаи брака в тг @kisslizzplease. <br>
+  Самые занимательные случаи будут опубликованы!
+  </div>
+  <img id="blueCircle" src="circle.png" alt="">
+</div>
+
+<div class="right-side">
+  <!-- Blue: no text, just phone -->
+  <div class="panel-wrap" id="blueWrap">
+    <div class="panel-content" id="panelBlue">
+      <div class="panel-inner bg-blue" id="blueInner">
+        <a href="https://t.me/brakpechati"
+          id="tgBtn"
+          class="tg-btn"
+          target="_blank">
+          Перейти в телеграм-канал
+        </a>
+      </div>
+    </div>
+    <div class="menu-tab bg-blue" data-panel="panelBlue" data-size="open-blue"><span class="num num-blue">③</span></div>
+  </div>
+
+  <!-- Yellow -->
+  <div class="panel-wrap" id="yellowWrap">
+    <div class="panel-content" id="panelYellow">
+      <div class="panel-inner panel-inner-scroll bg-yellow" style="width:100%; align-items:flex-start; justify-content:flex-start;">
+        <h2 class="lessons-title">Видео-уроки</h2>
+        <div class="lessons-grid">
+
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <a class="lesson-card" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank">
+              <div class="lesson-thumb"><img src="lesson1.png" alt="Превью урока 1" style="width:100%;height:100%;object-fit:cover;display:block;"><div class="lesson-thumb-play" style="position:absolute;"></div></div>
+              <div class="lesson-info">
+                <div class="lesson-meta"><span class="lesson-lbl">Урок 1</span><span class="lesson-dur">7 мин</span></div>
+                <div class="lesson-title">Профили в Photoshop</div>
+              </div>
+            </a>
+            <a class="download-btn" href="https://disk.yandex.ru/" target="_blank">Скачать профиль ISO</a>
+          </div>
+
+          <a class="lesson-card" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank">
+            <div class="lesson-thumb"><img src="lesson2.png" alt="Превью урока 2" style="width:100%;height:100%;object-fit:cover;display:block;"><div class="lesson-thumb-play" style="position:absolute;"></div></div>
+            <div class="lesson-info">
+              <div class="lesson-meta"><span class="lesson-lbl">Урок 2</span><span class="lesson-dur">5 мин</span></div>
+              <div class="lesson-title">Кастомный профиль в Photoshop</div>
+            </div>
+          </a>
+
+          <a class="lesson-card" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank">
+            <div class="lesson-thumb"><img src="lesson3.png" alt="Превью урока 3" style="width:100%;height:100%;object-fit:cover;display:block;"><div class="lesson-thumb-play" style="position:absolute;"></div></div>
+            <div class="lesson-info">
+              <div class="lesson-meta"><span class="lesson-lbl">Урок 3</span><span class="lesson-dur">7 мин</span></div>
+              <div class="lesson-title">Правильный экспорт</div>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </div>
+    <div class="menu-tab bg-yellow" data-panel="panelYellow" data-size="fill"><span class="num num-yellow">②</span></div>
+  </div>
+
+  <!-- Pink -->
+  <div class="panel-wrap">
+    <div class="panel-content" id="panelPink">
+      <div class="panel-inner panel-inner-scroll bg-pink" style="width:100%; align-items:flex-start; justify-content:flex-start;">
+        <div class="pink-box">Книга станет карманным помощником в&nbsp;мире печати для начинающих специалистов. Простым языком она расскажет о&nbsp;том, что такое муар и&nbsp;стохастический растр, поможет выбрать правильный оттенок серого, бумагу, переплёт и&nbsp;многое другое.</div>
+        <div class="pink-box">Ее&nbsp;уникальность заключается в&nbsp;наглядности, ведь каждый случай иллюстрируется на&nbsp;практике. Более того, книга напечатана с&nbsp;использованием двух технологий: большая часть отпечатана на&nbsp;цифровой машине, а&nbsp;избранные главы&nbsp;&mdash; на&nbsp;офсетной.</div>
+        <a class="download-btn pink-btn" href="#" target="_blank">Читать о проекте подробнее</a>
+      </div>
+    </div>
+    <div class="menu-tab bg-pink" data-panel="panelPink" data-size="custom"><span class="num num-pink">①</span></div>
+  </div>
+</div>
+
+<script>
+var active = null;
+var boxVisible = false;
+var loopRunning = false;
+var loopTimer = null;
+
+var BOX_W = 370;
+var BOX_H_APPROX = 195;
+var BOX_OPEN_H = 160;
+var PHONE_W = 0; // calculated
+var phoneX = 0, phoneY = 0;
+var boxRestX = 0, boxRestBottom = 20;
+
+var rotIn  = [-12, 2, 15];
+var rotOut = [20, -8, 28];
+
+var box       = document.getElementById('animBox');
+var imgs      = [document.getElementById('gi1'), document.getElementById('gi2'), document.getElementById('gi3')];
+var imgsOut   = [document.getElementById('go1'), document.getElementById('go2'), document.getElementById('go3')];
+var phoneWrap = document.getElementById('phoneWrap');
+var tgBtn     = document.getElementById('tgBtn');
+var mainTitle = document.getElementById('mainTitle');
+var blueLabel = document.getElementById('blueLabel');
+var pinkLabel = document.getElementById('pinkLabel');
+var blueSub = document.getElementById('blueSub');
+var blueCircle = document.getElementById('blueCircle');
+var panelBlue = document.getElementById('panelBlue');
+var blueInner = document.getElementById('blueInner');
+var colorToggle = document.getElementById('colorToggle');
+
+// ── Pink Slider ──
+var pinkSlider = document.getElementById('pinkSlider');
+var sliderImgs = pinkSlider.querySelectorAll('.pink-slider-track img');
+var sliderCurrent = 0;
+
+function sliderGoTo(idx) {
+  sliderImgs[sliderCurrent].classList.remove('active');
+  sliderCurrent = (idx + sliderImgs.length) % sliderImgs.length;
+  sliderImgs[sliderCurrent].classList.add('active');
+}
+
+document.getElementById('pinkPrev').addEventListener('click', function() {
+  sliderGoTo(sliderCurrent - 1);
+});
+document.getElementById('pinkNext').addEventListener('click', function() {
+  sliderGoTo(sliderCurrent + 1);
+});
+
+// Set blue panel width ~33vw
+var BLUE_W = Math.round(window.innerWidth * 0.33);
+panelBlue.style.setProperty('--blue-w', BLUE_W + 'px');
+
+function calcPositions() {
+  var vw = window.innerWidth;
+  var rightSide = document.querySelector('.right-side');
+  var whiteRight = rightSide ? rightSide.getBoundingClientRect().left : vw;
+
+  boxRestX = (whiteRight - BOX_W) / 2 - 250;
+  boxRestBottom = 20;
+
+  var rect = panelBlue.getBoundingClientRect();
+  var ratio = 0.462; // phone aspect w/h
+  var phoneWCalc = Math.round(Math.min(BLUE_W - 40, (rect.height * 0.85) * ratio));
+  var phoneH = phoneWCalc / ratio;
+  phoneX = rect.left + (rect.width - phoneWCalc) / 2;
+  phoneY = rect.top  + (rect.height - phoneH) / 2 - 30;
+  phoneWrap.style.width = phoneWCalc + 'px';
+  phoneWrap.style.left  = phoneX + 'px';
+  phoneWrap.style.top   = phoneY + 'px';
+  PHONE_W = phoneWCalc;
+}
+
+function hardReset(el, props) {
+  el.style.transition = 'none';
+  for (var k in props) el.style[k] = props[k];
+  void el.getBoundingClientRect();
+}
+
+function closeAllPanels() {
+  active = null;
+
+  document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+
+  document.querySelectorAll('.panel-content').forEach(p => {
+    p.classList.remove('open-sm','open-lg','open-blue');
+    p.style.width = '';
+  });
+
+  document.getElementById('blueWrap').style.transform = 'translateX(0)';
+  document.getElementById('yellowWrap').style.transform = 'translateX(0)';
+  document.querySelectorAll(
+  '#panelYellow .lesson-card, #panelYellow .download-btn, #panelYellow .lessons-title'
+).forEach(function(el) {
+  el.classList.remove('show');
+  
+});
+
+  // сброс визуальных состояний
+  hideAll();
+
+  mainTitle.style.transform = '';
+  blueLabel.style.left = '-600px';
+  blueCircle.style.left = '-600px';
+  blueCircle.style.opacity = '0';
+  blueSub.style.left = '-600px';
+  pinkLabel.style.left = '-600px';
+  pinkSlider.style.transition = 'left 0.5s cubic-bezier(0.4,0,0.2,1)';
+  pinkSlider.style.left = '-750px';
+  colorToggle.style.top = '24px';
+  var yellow = document.getElementById('panelYellow');
+
+if (yellow) {
+  yellow.classList.remove('open');
+
+  yellow.querySelectorAll('.show').forEach(function(el) {
+    el.classList.remove('show');
+  });
+}
+
+  document.querySelectorAll('.pink-box, .pink-btn, .lesson-card, .download-btn')
+    .forEach(el => el.classList.remove('show'));
+}
+
+document.querySelectorAll('.menu-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    var panelId = tab.getAttribute('data-panel');
+    var size    = tab.getAttribute('data-size');
+    var panel   = document.getElementById(panelId);
+
+    if (active === panelId) {
+      closeAllPanels();
+      return;
+    } else {
+      closeAllPanels();
+      // Close others
+      document.getElementById('blueWrap').style.transform = 'translateX(0)';
+      document.getElementById('yellowWrap').style.transform = 'translateX(0)';
+      document.querySelectorAll('.menu-tab').forEach(function(t){ t.classList.remove('active'); });
+      document.querySelectorAll('.panel-content').forEach(function(p){
+        p.classList.remove('open-sm','open-lg','open-blue');
+        p.style.width = '';
+      });
+      if (active === 'panelBlue') {
+        hideAll();
+        mainTitle.style.transform = '';
+        blueLabel.style.left = '-340px';
+        blueCircle.style.left = '-340px';
+        blueCircle.style.opacity = '0';
+        blueSub.style.left = '-340px';
+      }
+      if (active === 'panelPink') {
+        document.querySelectorAll('.pink-box, .pink-btn').forEach(function(el) {
+        el.style.transition = 'none';
+        el.classList.remove('show');
+        el.style.opacity = '';
+        el.style.transform = '';
+        });
+      }
+      if (active === 'panelYellow') {
+        document.querySelectorAll('.lesson-card, .download-btn').forEach(function(el) {
+          el.style.transition = 'none';
+          el.classList.remove('show');
+        });
+      }
+
+      // Open this panel
+      if (size === 'open-blue') {
+
+        panel.style.width = BLUE_W + 'px';
+
+      } else if (size === 'fill') {
+        mainTitle.style.transform = 'translateY(-500px)';
+
+        panel.style.width = 'calc(100vw - 136px)';
+        panel.classList.add('open');
+        
+        var shift = window.innerWidth - 144;
+
+        document.getElementById('blueWrap').style.transform =
+          'translateX(-' + shift + 'px)';
+        setTimeout(function () {
+
+    var title = document.querySelector('#panelYellow .lessons-title');
+    var cards = document.querySelectorAll('#panelYellow .lesson-card');
+    var btns  = document.querySelectorAll('#panelYellow .download-btn');
+
+    if (title) title.classList.add('show');
+
+    cards.forEach(function(el, i) {
+      setTimeout(function () {
+        el.classList.add('show');
+      }, 120 * i);
+    });
+
+    btns.forEach(function(el, i) {
+      setTimeout(function () {
+        el.classList.add('show');
+      }, 200 + 120 * i);
+    });
+
+  }, 400);
+
+      } else if (size === 'custom') {
+
+  var panelWidth = Math.min(
+    window.innerWidth * 0.4,
+    900
+  );
+  panelWidth = Math.max(panelWidth, 320);
+
+  panel.style.width = panelWidth + 'px';
+
+  var shift = panelWidth;
+
+  document.getElementById('blueWrap').style.transform =
+    'translateX(-' + shift + 'px)';
+
+  document.getElementById('yellowWrap').style.transform =
+    'translateX(-' + shift + 'px)';
+
+      } else {
+
+        panel.classList.add(size);
+
+      }
+      tab.classList.add('active');
+      active = panelId;
+      colorToggle.style.top = '-80px'; // уезжает вверх
+
+      if (panelId == 'panelPink') {
+        mainTitle.style.transform = 'translateY(-500px)';
+        pinkLabel.style.transition = 'none';
+        pinkLabel.style.left = '-600px';
+
+        setTimeout(function () {
+          var mainEl = document.querySelector('.main');
+          var mainRect = mainEl.getBoundingClientRect();
+
+          pinkLabel.style.transition = 'left 0.7s cubic-bezier(0.2,0.8,0.4,1)';
+          pinkLabel.style.left = (mainRect.left + 96) + 'px';
+
+          // Slider flies in with a slight delay after pinkLabel
+          pinkSlider.style.transition = 'none';
+          pinkSlider.style.left = '-700px';
+          void pinkSlider.getBoundingClientRect();
+          setTimeout(function() {
+            pinkSlider.style.transition = 'left 0.7s cubic-bezier(0.2,0.8,0.4,1)';
+            pinkSlider.style.left = (mainRect.left + 96) + 'px';
+          }, 80);
+        }, 420);
+        // 1. СНАЧАЛА сброс
+        document.querySelectorAll('.pink-box, .pink-btn').forEach(function(el) {
+          el.classList.remove('show');
+          el.style.transition = 'none';
+          el.style.transform = '';
+          el.style.opacity = '';
+        });
+
+        // 2. форсируем reflow (ВАЖНО)
+        void document.body.offsetHeight;
+
+        // 3. возвращаем transition обратно
+        document.querySelectorAll('.pink-box, .pink-btn').forEach(function(el) {
+          el.style.transition =
+            'transform 0.7s cubic-bezier(0.2,0.8,0.4,1), opacity 0.45s ease';
+        });
+
+        // 4. запускаем анимацию с задержкой
+        setTimeout(function () {
+
+          document.querySelectorAll('.pink-box').forEach(function(el, i) {
+            setTimeout(function () {
+              el.classList.add('show');
+            }, i * 120);
+          });
+
+          setTimeout(function () {
+            document.querySelector('.pink-btn').classList.add('show');
+          }, 400);
+
+        }, 50);
+      }
+
+      if (panelId == 'panelBlue') {
+        mainTitle.style.transform = 'translateY(-500px)';
+        setTimeout(function() {
+          // Title slides up (off top)
+          
+
+          // "Канал" label slides in from left
+          var mainEl = document.querySelector('.main');
+          var mainRect = mainEl.getBoundingClientRect();
+          blueLabel.style.left = (mainRect.left + 96) + 'px';
+          setTimeout(function () {
+            blueCircle.style.left = (mainRect.left + 35) + 'px';
+            blueCircle.style.opacity = '1';
+          }, 500);
+          blueSub.style.left = (mainRect.left + 96) + 'px';
+        }, 420);
+
+        setTimeout(function() {
+
+        calcPositions();
+
+        // Телефон прилетает сверху
+        phoneWrap.style.display = 'block';
+        phoneWrap.style.transition = 'none';
+        phoneWrap.style.top = (phoneY - window.innerHeight) + 'px';
+
+        void phoneWrap.getBoundingClientRect();
+
+        phoneWrap.style.transition =
+          'top 0.7s cubic-bezier(0.2,0.8,0.4,1)';
+
+        phoneWrap.style.top = phoneY + 'px';
+
+        // Кнопка выезжает снизу чуть позже телефона
+        setTimeout(function() {
+          tgBtn.classList.add('show');
+        }, 700);
+
+        // Потом запускается коробка
+        setTimeout(slideBoxIn, 1500);
+
+      }, 540);
+      }
+    }
+  });
+});
+
+function slideBoxIn() {
+  if (active !== 'panelBlue') return;
+  boxVisible = true;
+  hardReset(box, {
+    left:   '-320px',
+    bottom: boxRestBottom + 'px'
+  });
+  box.style.transition = 'left 0.8s cubic-bezier(0.2,0.8,0.4,1)';
+  box.style.left = boxRestX + 'px';
+  setTimeout(function() {
+    if (boxVisible) { loopRunning = true; runCycle(); }
+  }, 900);
+}
+
+function hideAll() {
+  boxVisible = false;
+  loopRunning = false;
+  clearTimeout(loopTimer);
+
+  phoneWrap.style.transition = 'none';
+  phoneWrap.style.display = 'none';
+  tgBtn.style.transition = 'none';
+
+  tgBtn.classList.remove('show');
+
+  void tgBtn.getBoundingClientRect();
+
+  tgBtn.style.transition =
+    'transform 0.7s cubic-bezier(0.2,0.8,0.4,1), opacity 0.45s ease';
+
+  var allImgs = imgs.concat(imgsOut);
+  allImgs.forEach(function(el) { hardReset(el, { opacity: '0', left: '-120px' }); });
+
+  hardReset(box, { left: box.style.left, bottom: box.style.bottom });
+  box.style.transition = 'left 0.7s cubic-bezier(0.4,0,0.8,0.6)';
+  box.style.left = '-400px';
+}
+
+function pulseEl(el) {
+  el.style.transition = 'transform 0.12s cubic-bezier(0.2,0,0.4,1)';
+  el.style.transform  = 'scale(1.07)';
+  setTimeout(function() {
+    el.style.transition = 'transform 0.2s cubic-bezier(0.3,0,0.2,1)';
+    el.style.transform  = 'scale(1)';
+  }, 120);
+}
+
+function runCycle() {
+  if (!loopRunning) return;
+
+  // Центр коробки — точка куда влетают изображения
+  var boxCenterLeft   = boxRestX + BOX_W / 2 - 50;
+  var boxCenterBottom = boxRestBottom + BOX_OPEN_H * 0.35;
+
+  // ── Сброс всех изображений за левый край ──
+  imgs.forEach(function(el, i) {
+    hardReset(el, {
+      opacity:   '0',
+      left:      '-120px',
+      bottom:    (boxRestBottom + BOX_OPEN_H + i * 22) + 'px',
+      transform: 'rotate(' + rotIn[i] + 'deg) scale(1)'
+    });
+  });
+  imgsOut.forEach(function(el) {
+    hardReset(el, {
+      opacity:   '0',
+      left:      boxCenterLeft + 'px',
+      bottom:    boxCenterBottom + 'px',
+      transform: 'rotate(0deg) scale(0.7)'
+    });
+  });
+
+  // ── Фаза 1: изображения сразу летят из-за края прямо в коробку ──
+  var IN_STAGGER = 200;  // задержка между картинками
+  var IN_FLY     = 800;  // длительность одного полёта
+
+  imgs.forEach(function(el, i) {
+    setTimeout(function() {
+      if (!loopRunning) return;
+      // Появляемся за левым краем и сразу летим в центр коробки
+      el.style.transition =
+        'left ' + (IN_FLY / 1000) + 's cubic-bezier(0.3,0,0.6,1), ' +
+        'bottom ' + (IN_FLY / 1000) + 's cubic-bezier(0.4,0,0.5,1), ' +
+        'opacity 0.18s ease-out, ' +
+        'transform ' + (IN_FLY / 1000) + 's ease-in';
+      el.style.opacity   = '1';
+      el.style.left      = boxCenterLeft + 'px';
+      el.style.bottom    = boxCenterBottom + 'px';
+      el.style.transform = 'rotate(0deg) scale(0.55)';
+
+      // Гасим чуть раньше финала — эффект засасывания
+      setTimeout(function() {
+        if (!loopRunning) return;
+        el.style.transition = 'opacity 0.18s ease-in';
+        el.style.opacity = '0';
+        // Пульсация коробки при попадании
+        pulseEl(box);
+      }, IN_FLY - 120);
+
+    }, i * IN_STAGGER);
+  });
+
+  // ── Пауза перед вылетом ──
+  var PAUSE = 400;
+  var phase2Start = 2 * IN_STAGGER + IN_FLY + PAUSE;
+
+  // ── Фаза 2: новые изображения вылетают из коробки к телефону ──
+  var OUT_STAGGER = 200;
+  var OUT_FLY     = 1200;  // замедлили полёт к телефону
+
+  imgsOut.forEach(function(el, i) {
+    setTimeout(function() {
+      if (!loopRunning) return;
+      var vh = window.innerHeight;
+      var targetLeft   = phoneX + PHONE_W * 0.15 + i * 16;
+      var targetBottom = vh - phoneY - (PHONE_W / 0.462) * 0.5 - i * 30;
+
+      hardReset(el, {
+        opacity:   '0',
+        left:      boxCenterLeft + 'px',
+        bottom:    boxCenterBottom + 'px',
+        transform: 'rotate(' + rotOut[i] + 'deg) scale(0.7)'
+      });
+
+      setTimeout(function() {
+        if (!loopRunning) return;
+        el.style.transition =
+          'left ' + (OUT_FLY / 1000) + 's cubic-bezier(0.2,0.8,0.3,1), ' +
+          'bottom ' + (OUT_FLY / 1000) + 's cubic-bezier(0.2,0.8,0.3,1), ' +
+          'opacity 0.22s ease-out, ' +
+          'transform ' + (OUT_FLY / 1000) + 's';
+        el.style.opacity   = '1';
+        el.style.left      = targetLeft + 'px';
+        el.style.bottom    = targetBottom + 'px';
+        el.style.transform = 'rotate(' + rotOut[i] + 'deg) scale(1)';
+
+        // Гасим по прилёту; пульсация телефона при касании каждого изображения
+        setTimeout(function() {
+          if (!loopRunning) return;
+          el.style.transition = 'opacity 0.3s ease-in';
+          el.style.opacity = '0';
+        }, OUT_FLY - 80);
+
+        // Пульс на ~10% пути — почти сразу после старта
+        setTimeout(function() {
+          if (!loopRunning) return;
+          pulseEl(phoneWrap);
+        }, Math.round(OUT_FLY * 0.2));
+      }, 30);
+
+    }, phase2Start + i * OUT_STAGGER);
+  });
+
+  // ── Следующий цикл ──
+  var nextCycle = phase2Start + 2 * OUT_STAGGER + OUT_FLY + 600;
+  loopTimer = setTimeout(function() {
+    if (loopRunning) runCycle();
+  }, nextCycle);
+}
+
+// ── Цветовой переключатель CMYK / RGB ──
+var CMYK_COLORS = { blue: '#29ABE2', yellow: '#F5A623', pink: '#E91E8C' };
+// cyan→#0000FF, magenta→#FF0000, yellow→#00FF00
+var RGB_COLORS  = { blue: '#0000FF', yellow: '#FF0000', pink: '#00FF00' };
+
+var isRGB = false;
+
+function applyColors(colors) {
+  document.querySelectorAll('.bg-blue').forEach(function(el)   { el.style.background = colors.blue;   });
+  document.querySelectorAll('.bg-yellow').forEach(function(el) { el.style.background = colors.yellow; });
+  document.querySelectorAll('.bg-pink').forEach(function(el)   { el.style.background = colors.pink;   });
+}
+
+colorToggle.addEventListener('click', function() {
+  isRGB = !isRGB;
+  if (isRGB) {
+    colorToggle.classList.add('rgb');
+    applyColors(RGB_COLORS);
+  } else {
+    colorToggle.classList.remove('rgb');
+    applyColors(CMYK_COLORS);
+  }
+});
+</script>
+</body>
+</html>
